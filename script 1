@@ -1,0 +1,59 @@
+use godigi;
+
+
+# task 1 Merge the 3 dataset and create 1 view of data.
+select * from insurance I inner join employee E on I.AGENT_ID=E.AGENT_ID
+inner join vendor V on V.VENDOR_ID=I.VENDOR_ID;
+
+
+# task 2 Business Leader wants to find Top 3 Insurance Type where we are getting most insurance claims?
+select INSURANCE_TYPE, count(INSURANCE_TYPE) 
+from insurance
+group by INSURANCE_TYPE 
+order by count(INSURANCE_TYPE) desc
+limit 3;
+
+# task 3 Business Leader wants to find Top 5 States where we are getting most insurance claims for customer belonging to HIGH(H) risk segment?
+select STATE ,count(STATE) 
+from insurance
+where RISK_SEGMENTATION="H"
+group by STATE 
+order by count(STATE) desc
+limit 5;
+
+# task 4 Business wants to create a new variable “COLOCATION” which will have following values IF
+-- Customer State == Incident State == Agent Address State THEN 1 ELSE 0 Find the mean of this new colum
+select avg(if(V.STATE=E.STATE and V.STATE=I.STATE ,1,0 )) as "COLOCATION"
+from insurance I inner join employee E on I.AGENT_ID=E.AGENT_ID
+inner join vendor V on V.VENDOR_ID=I.VENDOR_ID;
+
+
+# tsak 5 Data entry error was detected in the data and you are required to correct it. If for any
+-- claim transaction “AUTHORITY_CONTACTED” is NOT “Police” and POLICE_AVAILABLE == 1 Then Update “AUTHORITY_CONTACTED” to Police.
+
+select AUTHORITY_CONTACTED,POLICE_REPORT_AVAILABLE from insurance
+where (AUTHORITY_CONTACTED != "Police"  and POLICE_REPORT_AVAILABLE=1);
+
+update insurance
+set AUTHORITY_CONTACTED="Police"
+where (AUTHORITY_CONTACTED != "Police"  and POLICE_REPORT_AVAILABLE=1);
+
+set SQL_SAFE_UPDATES= 0;
+
+
+# task 6 Find All Agents who have worked on more than 2 types of Insurance Claims. Sort them by
+ -- Total Claim Amount Approved under them in descending order
+  
+select AGENT_ID, sum(CLAIM_AMOUNT) as "Total Claim Amount Approved" 
+from insurance 
+where CLAIM_STATUS="A"
+group by AGENT_ID
+having count(INSURANCE_TYPE)>2
+order by sum(CLAIM_AMOUNT) desc;
+
+# task 7 
+ 
+ 
+ 
+ 
+ 
