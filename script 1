@@ -1,9 +1,16 @@
 use godigi;
 
 
-# task 1 Merge the 3 dataset and create 1 view of data.
-select * from insurance I inner join employee E on I.AGENT_ID=E.AGENT_ID
-inner join vendor V on V.VENDOR_ID=I.VENDOR_ID;
+# task 1 Task 1
+#Merge the 3 dataset and create 1 view of data.
+#You can merge insurance_data.csv and employee_data.csv on AGENT_ID
+#You can merge insurance_data.csv and vendor_data.csv on VENDOR_ID
+# Note: Use left Outer join as not all claims require Vendor
+
+select * from insurance a 
+join employee b 
+on a.AGENT_ID=b.AGENT_ID
+left join vendor V on V.VENDOR_ID=a.VENDOR_ID;
 
 
 # task 2 Business Leader wants to find Top 3 Insurance Type where we are getting most insurance claims?
@@ -52,8 +59,45 @@ having count(INSURANCE_TYPE)>2
 order by sum(CLAIM_AMOUNT) desc;
 
 # task 7 
- 
- 
- 
- 
- 
+#Business wants to give discount to customer who are loyal and under stress due to Covid19. They have laid down an eligibility Criteria as follow
+#IF CUSTOMER_TENURE > 60 AND EMPLOYMENT_STATUS = “N”
+#AND NO_OF_FAMILY_MEMBERS >=4 THEN 1 ELSE 0
+#Create a new column “ELIGIBLE_FOR_DISCOUNT” and find it mean.
+
+select avg( 
+case
+when TENURE > 60 AND EMPLOYMENT_STATUS = 'N' AND NO_OF_FAMILY_MEMBERS >=4 THEN 1 ELSE 0
+end 
+) as loyal
+from insurance;
+
+
+#Business wants to find all Suspicious Employees (Agents).
+# IF TOTAL CLAIM AMOUNT which meet below criteria is >= 15000 THEN AGENT is classified
+# as Suspicious ELSE Not
+# CLAIM_STATUS = Approved AND CUSTOMER_RISK_SEGMENTATION = High
+# AND INCIDENT_SEVERITY = “Major Loss”
+# If Suspicious, then 1 ELSE 0. Find mean of this column.
+
+
+ select avg(if(SUM(CLAIM_AMOUNT)>=15000,1,0)) as Suspicious
+ from insurance
+ where CLAIM_STATUS='A' AND RISK_SEGMENTATION ='H' AND INCIDENT_SEVERITY = 'Major Loss';
+
+
+#Business wants to check Claim Velocity which is defined as follow
+#CLAIM_VELOCITY = NO_OF_CLAIMS_IN_LAST30DAYS (for the current insurance type)/ NO_OF_CLAIMS_IN_LAST3DAYS (for the current insurance type)
+
+#Note: LAST30DAYS & LAST3DAYS does not include current day
+SELECT TXN_DATE_TIME FROM insurance 
+order by TXN_DATE_TIME desc
+limit 3;
+
+# NO_OF_CLAIMS_IN_LAST30DAYS (for the current insurance type)
+(SELECT count(INSURANCE_TYPE) FROM insurance
+where TXN_DATE_TIME > '2021-05-30 00:00:00');
+
+(SELECT count(INSURANCE_TYPE) FROM insurance
+where TXN_DATE_TIME > '2021-06-27 00:00:00');
+
+select 811/76 as velocity;
